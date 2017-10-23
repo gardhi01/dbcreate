@@ -14,6 +14,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -45,8 +46,12 @@ public class Universitydbcreate {
             e.printStackTrace();
         }
         DbWriter dbw = new DbWriter();
+        ArrayList<String[]> depts = dbw.readDepartments("data/lc_departments.txt");
+
         try {
         dbw.createTables(username, password, url);
+        dbw.addData(username, password, url);
+        dbw.addDept(depts, username, password, url);
         } catch (SQLException ex) {
             Logger.getLogger(Universitydbcreate.class.getName()).log(Level.SEVERE, null, ex);
         }

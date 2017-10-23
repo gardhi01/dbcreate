@@ -17,6 +17,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.stream.IntStream;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,6 +27,25 @@ import java.util.logging.Logger;
  * @author gardhi01
  */
 public class DbWriter {
+    
+    public ArrayList<String[]> readDepartments(String file) {
+        ArrayList<String[]> departments = new ArrayList<>();
+        try {
+            Scanner fs = new Scanner(new File(file));
+            while (fs.hasNextLine()) {
+                // TODO: Parse each line into an object of type Address and add it to the ArrayList
+                String[] line = fs.nextLine().split("|");
+                //need to make the address class call an actual thing
+                String[] dept = {line[0], line[3]};
+                departments.add(dept);
+                //fs.nextLine();
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(Universitydbcreate.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return departments;
+    }
     
     public void createTables(String user, String pass, String url) throws SQLException {
         Connection conn = null;
@@ -175,8 +195,108 @@ public class DbWriter {
            }//end finally try
         }//end try
         System.out.println("Goodbye!");
-     }//end main
-     }//end JDBCExample
+     }
+    public void addData(String user, String pass, String url) throws SQLException {
+        ArrayList<String> buildings = new ArrayList<>();
+        buildings.add("Olin");
+        buildings.add("Valders");
+        buildings.add("Campus House");
+        buildings.add("Main");
+        buildings.add("Sampson Hoffland");
+        buildings.add("Koren");
+        buildings.add("Regents Center");
+        buildings.add("Preus Library");
+        buildings.add("Center for the Arts");
+        buildings.add("Union");
+        buildings.add("Ockham House");
+        buildings.add("Jenson-Noble");
+        
+        ArrayList<Integer> years = new ArrayList<>();
+        years.add(2018);
+        years.add(2019);
+        years.add(2020);
+        years.add(2021);
+        years.add(2022);
+
+        
+                
+           //STEP 2: Register JDBC driver
+           //Class.forName("com.mysql.jdbc.Driver");
+
+           //STEP 3: Open a connection
+        System.out.println("Connecting to a selected database...");
+        final Connection conn = DriverManager.getConnection(url, user, pass);
+           
+        String query = " INSERT INTO semester (year, season) VALUES (?, ?)";
+
+        for (Integer i: years) {
+
+      // create the mysql insert preparedstatement
+            PreparedStatement preparedStmt = conn.prepareStatement(query);
+            preparedStmt.setInt (1, i);
+            preparedStmt.setString (2, "Spring");
+      // execute the preparedstatement
+            preparedStmt.execute();
+            
+            preparedStmt = conn.prepareStatement(query);
+            preparedStmt.setInt (1, i);
+            preparedStmt.setString (2, "Summer");
+            preparedStmt.execute();
+            
+            preparedStmt = conn.prepareStatement(query);
+            preparedStmt.setInt (1, i);
+            preparedStmt.setString (2, "Fall");
+            preparedStmt.execute();
+            
+            preparedStmt = conn.prepareStatement(query);
+            preparedStmt.setInt (1, i);
+            preparedStmt.setString (2, "Winter");
+            preparedStmt.execute();
+        }
+        query = " INSERT INTO location (building, room, purpose) VALUES (?, ?, ?)";
+        final PreparedStatement ps = conn.prepareStatement(query);
+        for (String b: buildings) {
+            
+            IntStream.range(0, 60).forEach(
+                n -> {
+                    try{
+                        ps.setString(1, b);
+                        if (n < 21) {
+                            ps.setInt(2, 100 + n);
+                            ps.setString(3, "classroom");
+                        } else if (n < 41) {
+                            n = n-20;
+                            ps.setInt(2, 200 + n);
+                            ps.setString(3, "classroom");
+                        } else {
+                            n = n-40;
+                            ps.setInt(2, 300 + n);
+                            ps.setString(3, "office");
+                        }
+                        ps.execute();
+
+                    } catch(SQLException se) {
+                        se.printStackTrace();
+                    }
+                    System.out.println(n);
+                }
+            );
+        }
+        conn.close();
+    }
+    public void addDept(ArrayList<String[]> depts, String user, String pass, String url) throws SQLException {
+        Connection conn = DriverManager.getConnection(url, user, pass);
+        String query = " INSERT INTO department (name, building) VALUES (?, ?)";
+        PreparedStatement ps = conn.prepareStatement(query);
+        
+        for (String[] al: depts) {
+            ps.setString(1, al[0]);
+            ps.setString(2, al[1]);
+            ps.execute();
+        }
+        conn.close();
+    }
+}
 
 
      
