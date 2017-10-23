@@ -28,16 +28,15 @@ import java.util.logging.Logger;
  */
 public class DbWriter {
     
-    public ArrayList<String[]> readDepartments(String file) {
-        ArrayList<String[]> departments = new ArrayList<>();
+    public ArrayList<String> readDepartments(String file) {
+        ArrayList<String> departments = new ArrayList<>();
         try {
             Scanner fs = new Scanner(new File(file));
             while (fs.hasNextLine()) {
                 // TODO: Parse each line into an object of type Address and add it to the ArrayList
-                String[] line = fs.nextLine().split("|");
+                String line = fs.nextLine();
                 //need to make the address class call an actual thing
-                String[] dept = {line[0], line[3]};
-                departments.add(dept);
+                departments.add(line);
                 //fs.nextLine();
             }
         } catch (IOException ex) {
@@ -284,19 +283,49 @@ public class DbWriter {
         }
         conn.close();
     }
-    public void addDept(ArrayList<String[]> depts, String user, String pass, String url) throws SQLException {
+    public void addDept(ArrayList<String> depts, String user, String pass, String url) throws SQLException {
         Connection conn = DriverManager.getConnection(url, user, pass);
         String query = " INSERT INTO department (name, building) VALUES (?, ?)";
         PreparedStatement ps = conn.prepareStatement(query);
         
-        for (String[] al: depts) {
-            ps.setString(1, al[0]);
-            ps.setString(2, al[1]);
+        for (String al: depts) {
+            String[] s = al.split("\\|");
+            //System.out.println(s[0]);
+            //System.out.println(s[3]);
+            ps.setString(1, s[0]);
+            ps.setString(2, s[3]);
             ps.execute();
         }
         conn.close();
     }
-}
+    public void addMajor(String file, String user, String pass, String url) throws SQLException {
+        Connection conn = DriverManager.getConnection(url, user, pass);
+        String query = " INSERT INTO major (department, name) VALUES (?, ?)";
+        PreparedStatement ps = conn.prepareStatement(query);
+
+        try {
+            Scanner fs = new Scanner(new File(file));
+            while (fs.hasNextLine()) {
+                String[] line = fs.nextLine().split("\\|");
+                if (line.length == 2) {
+                    Statement statement = conn.createStatement();
+                    System.out.println(line[0]);
+                    ResultSet results = statement.executeQuery("SELECT id FROM department WHERE name = '" + line[1] + "';");
+                    if (results.first()) {
+                        int dept_id = results.getInt("id");
+                        results.close();
+                        ps.setInt(1, dept_id);
+                        ps.setString(2, line[0]);
+                        ps.execute();
+                    }
+                }
+            }
+            conn.close();
+                 } catch (IOException ex) {
+            Logger.getLogger(Universitydbcreate.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+        }
 
 
      

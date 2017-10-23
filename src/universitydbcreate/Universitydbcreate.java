@@ -46,12 +46,13 @@ public class Universitydbcreate {
             e.printStackTrace();
         }
         DbWriter dbw = new DbWriter();
-        ArrayList<String[]> depts = dbw.readDepartments("data/lc_departments.txt");
+        ArrayList<String> depts = dbw.readDepartments("data/lc_departments.txt");
 
         try {
         dbw.createTables(username, password, url);
         dbw.addData(username, password, url);
         dbw.addDept(depts, username, password, url);
+        dbw.addMajor("data/lc_majors.txt", username, password, url);
         } catch (SQLException ex) {
             Logger.getLogger(Universitydbcreate.class.getName()).log(Level.SEVERE, null, ex);
         }
